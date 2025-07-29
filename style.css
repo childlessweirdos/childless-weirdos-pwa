@@ -51,6 +51,10 @@ footer {
 
 /* Mobile-first design adjustments */
 @media (max-width: 768px) {
+  body {
+    padding: 10px; /* Reduce padding on mobile */
+  }
+
   header h1 {
     font-size: 1.5em; /* Smaller text on mobile */
   }
@@ -58,6 +62,7 @@ footer {
   .button {
     width: 100%; /* Full-width buttons on mobile */
     font-size: 1em; /* Adjust font size */
+    margin: 5px 0; /* Adjust margins for better spacing */
   }
 
   footer {
@@ -87,4 +92,5 @@ footer {
     font-size: 1em; /* Default footer text */
   }
 }
+
 
