@@ -16,7 +16,6 @@
   
   <main>
     <section id="latest-strip">
-      <!-- The strip should scale on all devices -->
       <img src="Latest-strip.png" alt="Latest Comic Strip" />
     </section>
 
@@ -29,5 +28,21 @@
   <footer>
     <p>&copy; 2025 Childless Weirdos</p>
   </footer>
+
+  <!-- Register the service worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/service-worker.js')
+          .then((registration) => {
+            console.log('Service Worker registered with scope: ', registration.scope);
+          })
+          .catch((error) => {
+            console.log('Service Worker registration failed: ', error);
+          });
+      });
+    }
+  </script>
 </body>
 </html>
