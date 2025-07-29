@@ -2,7 +2,7 @@
   "name": "Childless Weirdos",
   "short_name": "CW Weirdos",
   "description": "A place for all the latest strips of Childless Weirdos!",
-  "start_url": "./index.html",  // Corrected start_url for GitHub Pages
+  "start_url": "/index.html",  // Corrected start_url for GitHub Pages
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
