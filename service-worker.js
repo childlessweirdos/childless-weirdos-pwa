@@ -3,12 +3,12 @@ const cacheName = 'childless-weirdos-pwa-cache-v1';
 
 // Files to cache
 const filesToCache = [
-  '/index.html',          // No need for a leading slash
-  '/Latest-strip.png',    // Corrected the path
-  '/style.css',
-  '/manifest.json',
-  '/cwicon192.png',      // Corrected the path
-  '/cwicon512.png',      // Corrected the path
+  'index.html',         // No leading slash
+  'Latest-strip.png',   // Corrected path
+  'style.css',
+  'manifest.json',
+  'cwicon192.png',      // Corrected path
+  'cwicon512.png',      // Corrected path
 ];
 
 // Install Service Worker and cache files
@@ -16,6 +16,9 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(cacheName).then((cache) => {
       console.log('Service Worker installed, caching files...');
+      filesToCache.forEach(file => {
+        console.log('Caching file: ', file);  // Log each file being cached
+      });
       return cache.addAll(filesToCache);
     })
   );
