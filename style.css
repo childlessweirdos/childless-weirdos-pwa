@@ -12,10 +12,11 @@ header h1 {
 }
 
 #latest-strip img {
-  max-width: 100%;
-  height: auto;
+  max-width: 100%; /* Ensures the image does not overflow */
+  height: auto; /* Keeps the image's aspect ratio */
   border-radius: 8px;
   margin-bottom: 20px;
+  object-fit: contain; /* Maintains aspect ratio while scaling */
 }
 
 .buttons {
@@ -42,3 +43,13 @@ footer {
   font-size: 0.9em;
   color: #777;
 }
+
+/* Media Query for Mobile Devices */
+@media (max-width: 768px) {
+  #latest-strip img {
+    width: 100%; /* Ensures full-width on smaller devices */
+    height: auto; /* Maintains aspect ratio */
+    max-width: 100%; /* Avoids overflow */
+  }
+}
+
