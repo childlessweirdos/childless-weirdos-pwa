@@ -12,11 +12,13 @@ header h1 {
 }
 
 #Latest-strip img {
-  max-width: 100%; /* Ensures the image does not overflow */
-  height: auto; /* Keeps the image's aspect ratio */
+  width: 100%;  /* Make the image take full width */
+  max-width: 100%; /* Prevent it from growing beyond container */
+  height: auto;  /* Keep aspect ratio intact */
+  max-height: 80vh; /* Limit height to 80% of the viewport height */
   border-radius: 8px;
   margin-bottom: 20px;
-  object-fit: contain; /* Maintains aspect ratio while scaling */
+  object-fit: contain; /* Make sure it fits within bounds without distortion */
 }
 
 .buttons {
@@ -47,9 +49,10 @@ footer {
 /* Media Query for Mobile Devices */
 @media (max-width: 768px) {
   #Latest-strip img {
-    width: 100%; /* Ensures full-width on smaller devices */
-    height: auto; /* Maintains aspect ratio */
-    max-width: 100%; /* Avoids overflow */
+    width: 100%;
+    height: auto;
+    max-height: 60vh; /* Make sure the image doesn't stretch too large on mobile */
   }
 }
+
 
