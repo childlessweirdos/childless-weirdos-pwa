@@ -11,7 +11,7 @@ header h1 {
   margin-bottom: 20px;
 }
 
-#latest-strip img {
+#Latest-strip img {
   max-width: 100%; /* Ensures the image does not overflow */
   height: auto; /* Keeps the image's aspect ratio */
   border-radius: 8px;
@@ -46,7 +46,7 @@ footer {
 
 /* Media Query for Mobile Devices */
 @media (max-width: 768px) {
-  #latest-strip img {
+  #Latest-strip img {
     width: 100%; /* Ensures full-width on smaller devices */
     height: auto; /* Maintains aspect ratio */
     max-width: 100%; /* Avoids overflow */
