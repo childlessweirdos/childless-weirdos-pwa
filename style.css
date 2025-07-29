@@ -12,13 +12,13 @@ header h1 {
 }
 
 #Latest-strip img {
-  width: 100%;  /* Make the image take full width */
-  max-width: 100%; /* Prevent it from growing beyond container */
-  height: auto;  /* Keep aspect ratio intact */
-  max-height: 80vh; /* Limit height to 80% of the viewport height */
+  width: 100%;  /* Ensure it takes up the full width of the container */
+  max-width: 100%; /* Prevents it from going beyond container width */
+  height: auto;  /* Keeps the aspect ratio intact */
+  max-height: 80vh;  /* Limits image height to 80% of viewport */
   border-radius: 8px;
   margin-bottom: 20px;
-  object-fit: contain; /* Make sure it fits within bounds without distortion */
+  object-fit: contain; /* Ensures it fits without distortion */
 }
 
 .buttons {
@@ -51,8 +51,7 @@ footer {
   #Latest-strip img {
     width: 100%;
     height: auto;
-    max-height: 60vh; /* Make sure the image doesn't stretch too large on mobile */
+    max-height: 60vh; /* Make sure image doesn’t grow too large on mobile */
   }
 }
-
 
