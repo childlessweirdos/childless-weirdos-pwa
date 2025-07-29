@@ -4,12 +4,12 @@ const cacheName = 'childless-weirdos-pwa-cache-v1';
 // Files to cache
 const filesToCache = [
   '/',
-  '/index.html',
-  '/Latest-strip.png',  // Make sure the file name matches the case exactly
-  '/style.css',
-  '/manifest.json',
-  '/cwicon192.png',    // Corrected path to the icon file
-  '/cwicon512.png',    // Corrected path to the icon file
+  'index.html',          // No need for a leading slash
+  'Latest-strip.png',    // Corrected the path
+  'style.css',
+  'manifest.json',
+  'cwicon192.png',      // Corrected the path
+  'cwicon512.png',      // Corrected the path
 ];
 
 // Install Service Worker and cache files
