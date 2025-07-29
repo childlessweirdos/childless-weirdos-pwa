@@ -3,7 +3,6 @@ const cacheName = 'childless-weirdos-pwa-cache-v1';
 
 // Files to cache
 const filesToCache = [
-  '/',
   'index.html',          // No need for a leading slash
   'Latest-strip.png',    // Corrected the path
   'style.css',
