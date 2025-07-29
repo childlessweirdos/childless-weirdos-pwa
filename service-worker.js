@@ -1,5 +1,3 @@
-// service-worker.js
-
 // Cache name
 const cacheName = 'childless-weirdos-pwa-cache-v1';
 
@@ -7,13 +5,11 @@ const cacheName = 'childless-weirdos-pwa-cache-v1';
 const filesToCache = [
   '/',
   '/index.html',
-  '/Latest-strip.png',
+  '/Latest-strip.png',  // Make sure the file name matches the case exactly
   '/style.css',
   '/manifest.json',
-  '/images/icon-192.png',
-  '/images/icon-512.png',
-  '/images/cwicon192.png',
-  '/images/cwicon512.png'
+  '/cwicon192.png',    // Corrected path to the icon file
+  '/cwicon512.png',    // Corrected path to the icon file
 ];
 
 // Install Service Worker and cache files
@@ -37,12 +33,12 @@ self.addEventListener('fetch', (event) => {
 
 // Update service worker
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [cacheName];
+  const cacheWhiteList = [cacheName];
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (!cacheWhitelist.includes(cacheName)) {
+          if (!cacheWhiteList.includes(cacheName)) {
             return caches.delete(cacheName);
           }
         })
@@ -50,3 +46,4 @@ self.addEventListener('activate', (event) => {
     })
   );
 });
+
