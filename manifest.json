@@ -2,21 +2,20 @@
   "name": "Childless Weirdos",
   "short_name": "CW Weirdos",
   "description": "A place for all the latest strips of Childless Weirdos!",
-  "start_url": "/index.html",
+  "start_url": "./index.html",  // Corrected start_url for GitHub Pages
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
-"icons": [
-  {
-    "src": "cwicon192.png",
-    "sizes": "192x192",
-    "type": "image/png"
-  },
-  {
-    "src": "cwicon512.png",
-    "sizes": "512x512",
-    "type": "image/png"
-  }
-]
-
+  "icons": [
+    {
+      "src": "cwicon192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "cwicon512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
