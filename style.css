@@ -6,24 +6,30 @@ body {
   text-align: center;
   padding: 20px;
   margin: 0; /* Ensure no extra space on mobile */
+  box-sizing: border-box; /* Makes sure padding doesn't affect layout */
 }
 
+/* Header styles */
 header h1 {
   font-size: 2em;
   margin-bottom: 20px;
 }
 
 /* Latest strip styles */
-#Latest-strip img {
+#latest-strip img {
   width: 100%; /* Ensures the image is responsive */
   height: auto; /* Keeps the aspect ratio intact */
   border-radius: 8px;
   margin-bottom: 20px;
   object-fit: contain; /* Keeps image aspect ratio on all screen sizes */
+  max-width: 100%; /* Prevents overflow */
 }
 
 /* Button container */
 .buttons {
+  display: flex; /* Flexbox layout for buttons */
+  justify-content: center; /* Center buttons */
+  gap: 10px; /* Space between buttons */
   margin-top: 20px;
 }
 
@@ -38,11 +44,11 @@ header h1 {
   font-size: 1.1em;
 }
 
-/* Button hover effect */
 .button:hover {
   background-color: #d07;
 }
 
+/* Footer styles */
 footer {
   margin-top: 40px;
   font-size: 0.9em;
@@ -69,10 +75,10 @@ footer {
     font-size: 0.8em; /* Smaller footer text */
   }
 
-  #Latest-strip img {
-    width: 100%; /* Ensure full width image on smaller devices */
+  #latest-strip img {
+    width: 100%; /* Ensure full-width image on smaller devices */
     height: auto;
-    max-width: 100%;
+    max-width: 100%; /* Ensure the image doesn't overflow */
   }
 }
 
@@ -92,5 +98,4 @@ footer {
     font-size: 1em; /* Default footer text */
   }
 }
-
 
