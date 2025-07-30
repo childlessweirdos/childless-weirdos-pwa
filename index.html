@@ -10,31 +10,33 @@
   <meta name="theme-color" content="#ffffff">
 </head>
 <body>
-  <header>
-    <h1>Childless Weirdos</h1>
-  </header>
-  
-  <main>
-    <section id="latest-strip">
-      <img src="Latest-strip.png" alt="Latest Comic Strip" />
-    </section>
+  <div id="app-container"> <!-- Container for dynamic layout -->
+    <header>
+      <h1>Childless Weirdos</h1>
+    </header>
+    
+    <main>
+      <section id="latest-strip">
+        <img src="Latest-strip.png" alt="Latest Comic Strip" />
+      </section>
 
-    <div class="buttons">
-      <a href="https://www.childlessweirdos.com/archive" class="button">View Archive</a>
-      <a href="https://ko-fi.com/childlessweirdos" class="button">Support on Ko-fi</a>
-    </div>
-  </main>
+      <div class="buttons">
+        <a href="https://www.childlessweirdos.com/archive" class="button">View Archive</a>
+        <a href="https://ko-fi.com/childlessweirdos" class="button">Support on Ko-fi</a>
+      </div>
+    </main>
 
-  <footer>
-    <p>&copy; 2025 Childless Weirdos</p>
-  </footer>
+    <footer>
+      <p>&copy; 2025 Childless Weirdos</p>
+    </footer>
+  </div>
 
   <!-- Register the service worker -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker
-          .register('service-worker.js')  <!-- Ensure the correct path -->
+          .register('service-worker.js')  <!-- Ensure correct path -->
           .then((registration) => {
             console.log('Service Worker registered with scope: ', registration.scope);
           })
@@ -71,5 +73,3 @@
   </script>
 </body>
 </html>
-
-
