@@ -4,39 +4,44 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Childless Weirdos</title>
+  
+  <!-- Link to the Manifest -->
+  <link rel="manifest" href="manifest.json">
+  
+  <!-- Icons for Home Screen and Browser -->
   <link rel="icon" href="cwicon192.png" sizes="192x192">
   <link rel="apple-touch-icon" href="cwicon512.png">
-  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#ffffff">
 </head>
 <body>
-  <div id="app-container"> <!-- Container for dynamic layout -->
-    <header>
-      <h1>Childless Weirdos</h1>
-    </header>
+  <header>
+    <h1>Childless Weirdos</h1>
+  </header>
+  
+  <main>
+    <section id="latest-strip">
+      <img src="Latest-strip.png" alt="Latest Comic Strip" />
+    </section>
+
+    <div class="buttons">
+      <a href="https://www.childlessweirdos.com/archive" class="button">View Archive</a>
+      <a href="https://ko-fi.com/childlessweirdos" class="button">Support on Ko-fi</a>
+    </div>
     
-    <main>
-      <section id="latest-strip">
-        <img src="Latest-strip.png" alt="Latest Comic Strip" />
-      </section>
+    <!-- Add to Home Screen Button (for mobile) -->
+    <button id="install-btn" style="display: none;">Add to Home Screen</button>
+  </main>
 
-      <div class="buttons">
-        <a href="https://www.childlessweirdos.com/archive" class="button">View Archive</a>
-        <a href="https://ko-fi.com/childlessweirdos" class="button">Support on Ko-fi</a>
-      </div>
-    </main>
+  <footer>
+    <p>&copy; 2025 Childless Weirdos</p>
+  </footer>
 
-    <footer>
-      <p>&copy; 2025 Childless Weirdos</p>
-    </footer>
-  </div>
-
-  <!-- Register the service worker -->
+  <!-- Register the service worker for caching, etc. (Optional but useful for full PWA functionality) -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker
-          .register('service-worker.js')  <!-- Ensure correct path -->
+          .register('service-worker.js')
           .then((registration) => {
             console.log('Service Worker registered with scope: ', registration.scope);
           })
@@ -48,14 +53,15 @@
 
     // Install prompt handling for Add to Home Screen functionality
     let deferredPrompt;
+    const installBtn = document.getElementById('install-btn');
+    
     window.addEventListener('beforeinstallprompt', (e) => {
       // Prevent the default prompt
       e.preventDefault();
       deferredPrompt = e;
+
       // Show the custom install button
-      const installBtn = document.createElement('button');
-      installBtn.textContent = 'Install App';
-      document.body.appendChild(installBtn);
+      installBtn.style.display = 'block';
 
       installBtn.addEventListener('click', () => {
         deferredPrompt.prompt();
