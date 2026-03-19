@@ -51,12 +51,12 @@ body {
 .start-btn:active { transform:translate(2px,2px); box-shadow:2px 3px 0 #111; }
 
 /* GAME */
-#game-wrap { display:none; position:relative; background:#f5f0e8; border:3px solid #111; box-shadow:6px 7px 0 #111; overflow:visible; }
+#game-wrap { display:none; position:relative; background:#f5f0e8; border:3px solid #111; box-shadow:6px 7px 0 #111; overflow:visible; line-height:0; }
 canvas { display:block; }
 #hud {
   position:absolute; top:0; left:0; right:0;
   display:flex; justify-content:space-between; align-items:flex-start;
-  padding:10px 12px 0; pointer-events:none; z-index:10;
+  padding:6px 10px 0; pointer-events:none; z-index:10;
 }
 .hud-score { font-family:'Bangers',cursive; font-size:clamp(14px,3.5vw,22px); letter-spacing:0.06em; color:#111; line-height:1; }
 .hud-label { font-size:clamp(7px,1.5vw,9px); letter-spacing:0.12em; text-transform:uppercase; color:#888; }
@@ -129,7 +129,7 @@ canvas { display:block; }
         <div class="hud-score" id="hiDisplay">0</div>
       </div>
     </div>
-    <canvas id="gameCanvas" width="480" height="410" style="margin-top:10px;display:block;width:100%;height:auto;"></canvas>
+    <canvas id="gameCanvas" width="480" height="410" style="display:block;width:100%;height:auto;vertical-align:top;"></canvas>
     <div id="gameover-overlay">
       <div class="go-title" id="goTitle">MOO WINS.</div>
       <div class="go-sub" id="goSub">"i think your mommy wants you back alive, sweetie."</div>
@@ -789,6 +789,7 @@ function update() {
     G.bullets.push({ x: HAKU_X + 46, y: haku.y - 4, vx: 9 });
     G.bullets.push({ x: HAKU_X + 46, y: haku.y + 4, vx: 9 });
     spawnCasing(haku.y);
+    playPew();
     G.fireCD = 13;
   }
 
@@ -836,7 +837,7 @@ function update() {
     let hit = false;
     G.bullets = G.bullets.filter(b => {
       if (!hit && Math.abs(b.x-(bird.x+11))<26 && Math.abs(b.y-bird.y)<16) {
-        hit=true; spawnBirdPop(bird.x+11,bird.y); G.score+=10; G.birdsShot++; updateHUD(); return false;
+        hit=true; spawnBirdPop(bird.x+11,bird.y); G.score+=10; G.birdsShot++; updateHUD(); playBirdPop(); return false;
       }
       return true;
     });
@@ -850,7 +851,7 @@ function update() {
     let hit=false;
     G.bullets = G.bullets.filter(b => {
       if (!hit && Math.abs(b.x-dish.x)<26 && Math.abs(b.y-dish.y)<22) {
-        hit=true; spawnDishPop(dish.x,dish.y); G.score+=50; updateHUD(); return false;
+        hit=true; spawnDishPop(dish.x,dish.y); G.score+=50; updateHUD(); playDishBonus(); return false;
       }
       return true;
     });
@@ -884,6 +885,8 @@ function spawnBoss() {
     hp: hp,
     maxHp: hp,
     state: 'idle',       // idle | windup | swipe | recovering | staggered
+    quip: null,
+    attackType: 'normal',
     stateTimer: 0,
     swipePhase: 0,       // 0=normal, 1=double
     clawX: W - 90,       // claw extends left during swipe
@@ -930,6 +933,10 @@ function updateBoss() {
     // Extend claw rapidly to the left
     const targetClawX = HAKU_X + 60;
     boss.clawX += (targetClawX - boss.clawX) * 0.25;
+    // Diagonal: sweep claw downward during swipe
+    if (boss.attackType === 'diagonal') {
+      boss.clawTargetY += 4; // sweep down
+    }
 
     // Check hit — claw tip at clawX - 20
     const clawTip = boss.clawX - 20;
@@ -973,13 +980,15 @@ function updateBoss() {
   }
 
   // Check bullets hitting boss
-  const bossHitZone = { x: boss.x - 40, y: boss.y - 55, w: 90, h: 110 };
+  var bossScale = 3.0 + boss.round * 0.2;
+const bossHitZone = { x: boss.x - bossScale*16, y: boss.y - bossScale*20, w: bossScale*32, h: bossScale*42 };
   G.bullets = G.bullets.filter(b => {
     if (b.x > bossHitZone.x && b.x < bossHitZone.x + bossHitZone.w &&
         b.y > bossHitZone.y && b.y < bossHitZone.y + bossHitZone.h) {
       boss.hp--;
       boss.hitFlash = 12;
       boss.shakeX = (Math.random() - 0.5) * 10;
+      playBossHit();
       G.score += 3;
       updateHUD();
       // Spawn small hit spark
@@ -1004,6 +1013,7 @@ function updateBoss() {
 }
 
 function bossDefeated() {
+  playBossDefeated();
   const boss = G.boss;
   G.score += 100 + G.bossRound * 50; // bonus score
   updateHUD();
@@ -1022,6 +1032,63 @@ function bossDefeated() {
   G.bossTransition = 150; // 2.5 seconds celebration
 }
 
+
+var BOSS_QUIPS = [
+  "alive, sweetie.",
+  "i think your mommy\nwants you back.",
+  "NOT TODAY.",
+  "oh you sweet\nlittle fool.",
+  "hmm.. i think\nyou forgot who I am.",
+  "pew pew? REALLY?",
+  "adorable.",
+  "i have a knife.",
+];
+
+function drawBossSpeechBubble(boss) {
+  if (boss.state !== 'windup' && boss.state !== 'idle') return;
+  if (!boss.quip) return;
+  var x = boss.x - 60;
+  var y = boss.y - (100 * (3.0 + boss.round * 0.2))/2 - 20;
+  var lines = boss.quip.split('\n');
+  var maxW = 0;
+  lines.forEach(function(l) { maxW = Math.max(maxW, l.length * 7); });
+  var bw = Math.max(90, maxW + 20);
+  var bh = lines.length * 18 + 14;
+  var bx = x - bw;
+  var by = y - bh;
+
+  // Bubble
+  ctx.fillStyle = 'white';
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth = 2;
+  // Manual rounded rect (roundRect not supported in all browsers)
+  var r8 = 8;
+  ctx.beginPath();
+  ctx.moveTo(bx+r8, by);
+  ctx.lineTo(bx+bw-r8, by); ctx.quadraticCurveTo(bx+bw, by, bx+bw, by+r8);
+  ctx.lineTo(bx+bw, by+bh-r8); ctx.quadraticCurveTo(bx+bw, by+bh, bx+bw-r8, by+bh);
+  ctx.lineTo(bx+r8, by+bh); ctx.quadraticCurveTo(bx, by+bh, bx, by+bh-r8);
+  ctx.lineTo(bx, by+r8); ctx.quadraticCurveTo(bx, by, bx+r8, by);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Tail pointing right toward boss
+  ctx.beginPath();
+  ctx.moveTo(bx + bw - 10, by + bh);
+  ctx.lineTo(bx + bw + 10, by + bh + 12);
+  ctx.lineTo(bx + bw - 24, by + bh);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+
+  // Text
+  ctx.fillStyle = '#111';
+  ctx.font = 'bold 11px "Patrick Hand", cursive';
+  ctx.textAlign = 'center';
+  lines.forEach(function(line, i) {
+    ctx.fillText(line, bx + bw/2, by + 16 + i * 18);
+  });
+  ctx.textAlign = 'left';
+}
+
 function drawBoss(boss) {
   if (!boss) return;
   ctx.save();
@@ -1029,7 +1096,7 @@ function drawBoss(boss) {
 
   const x = boss.x;
   const y = boss.y;
-  const scale = 2.2 + boss.round * 0.15; // bigger each round
+  const scale = 3.0 + boss.round * 0.2; // much bigger each round
 
   // Hit flash
   if (boss.hitFlash > 0 && Math.floor(G.frame/2) % 2 === 0) {
@@ -1042,6 +1109,8 @@ function drawBoss(boss) {
     ctx.drawImage(MOO_IMG, x - sw/2, y - sh/2, sw, sh);
   }
   ctx.globalAlpha = 1.0;
+
+  drawBossSpeechBubble(boss);
 
   // CLAW — drawn separately, extends left
   const cx = boss.clawX;
@@ -1159,7 +1228,7 @@ function updateMoo() {
         moo.state = 'windup';
         moo.windupTimer = 55; // longer telegraph — more time to react
         moo.targetY = G.haku.y; // Y locked NOW — dodge window is the entire windup
-        G.mooWarningTimer = 75;
+        G.mooWarningTimer = 75; playMooWarning(); playMooWarning();
       }
     }
   } else if (moo.state === 'windup') {
@@ -1377,6 +1446,138 @@ document.getElementById('playerName').addEventListener('keydown', function(e) {
 
 
 </script>
+
+
+// ==============================================
+// AUDIO ENGINE
+// ==============================================
+var _ac = null;
+function getAC() {
+  if (!_ac) { try { _ac = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} }
+  return _ac;
+}
+function playPew() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type='square';
+    o.frequency.setValueAtTime(880,ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(220,ac.currentTime+0.08);
+    g.gain.setValueAtTime(0.15,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.09);
+    o.start();o.stop(ac.currentTime+0.09);
+  } catch(e){}
+}
+function playBirdPop() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type='sine';
+    o.frequency.setValueAtTime(600,ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(120,ac.currentTime+0.15);
+    g.gain.setValueAtTime(0.18,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.15);
+    o.start();o.stop(ac.currentTime+0.15);
+  } catch(e){}
+}
+function playDishBonus() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    [523,659,784].forEach(function(f,i) {
+      var o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='triangle';o.frequency.value=f;
+      var t=ac.currentTime+i*0.09;
+      g.gain.setValueAtTime(0.14,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.12);
+      o.start(t);o.stop(t+0.12);
+    });
+  } catch(e){}
+}
+function playHakuHit() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    var buf=ac.createBuffer(1,Math.floor(ac.sampleRate*0.25),ac.sampleRate);
+    var d=buf.getChannelData(0);
+    for(var i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+    var s=ac.createBufferSource(),g=ac.createGain(),f=ac.createBiquadFilter();
+    s.buffer=buf;f.type='lowpass';f.frequency.value=350;
+    s.connect(f);f.connect(g);g.connect(ac.destination);
+    g.gain.value=0.4;s.start();
+  } catch(e){}
+}
+function playMooWarning() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type='sawtooth';o.frequency.value=90;
+    g.gain.setValueAtTime(0.1,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.4);
+    o.start();o.stop(ac.currentTime+0.4);
+  } catch(e){}
+}
+function playBossHit() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    var o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);
+    o.type='sawtooth';
+    o.frequency.setValueAtTime(150,ac.currentTime);
+    o.frequency.exponentialRampToValueAtTime(55,ac.currentTime+0.22);
+    g.gain.setValueAtTime(0.22,ac.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.22);
+    o.start();o.stop(ac.currentTime+0.22);
+  } catch(e){}
+}
+function playBossRoar() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    [55,75,110].forEach(function(f,i) {
+      var o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='sawtooth';o.frequency.value=f;
+      var t=ac.currentTime+i*0.06;
+      g.gain.setValueAtTime(0.0,t);
+      g.gain.linearRampToValueAtTime(0.16,t+0.08);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.5);
+      o.start(t);o.stop(t+0.55);
+    });
+  } catch(e){}
+}
+function playBossDefeated() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    [392,523,659,784,1047].forEach(function(f,i) {
+      var o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='square';o.frequency.value=f;
+      var t=ac.currentTime+i*0.1;
+      g.gain.setValueAtTime(0.14,t);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+      o.start(t);o.stop(t+0.18);
+    });
+  } catch(e){}
+}
+function playBossIntro() {
+  var ac=getAC(); if(!ac) return;
+  try {
+    [200,160,120,80].forEach(function(f,i) {
+      var o=ac.createOscillator(),g=ac.createGain();
+      o.connect(g);g.connect(ac.destination);
+      o.type='sawtooth';o.frequency.value=f;
+      var t=ac.currentTime+i*0.2;
+      g.gain.setValueAtTime(0.0,t);
+      g.gain.linearRampToValueAtTime(0.18,t+0.06);
+      g.gain.exponentialRampToValueAtTime(0.001,t+0.28);
+      o.start(t);o.stop(t+0.32);
+    });
+  } catch(e){}
+}
+document.addEventListener('click', function(){getAC();},{once:true});
+document.addEventListener('touchstart', function(){getAC();},{once:true});
 
 <script>
 // Tell parent iframe our height whenever it changes
