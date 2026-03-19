@@ -202,7 +202,7 @@ function resetGame() {
     birds: [],
     dishes: [],
     particles: [],
-    moo: { x: W + 60, y: H/2, phase: 0, state: 'idle', chargeTimer: 0, chargeDelay: 220, hits: 0, hitFlash: 0, warningShown: false },
+    moo: { x: W + 60, y: H/2, phase: 0, state: 'idle', chargeTimer: 0, chargeDelay: 160, hits: 0, hitFlash: 0, warningShown: false },
     score: 0,
     frame: 0,
     birdRate: 85,
@@ -961,7 +961,7 @@ function updateBoss() {
       }
       boss.quip = BOSS_QUIPS[Math.floor(Math.random() * BOSS_QUIPS.length)];
       boss.state = 'pressing';
-      boss.stateTimer = 55; // windup while pressing in
+      boss.stateTimer = 40; // windup while pressing in
       boss.pressDepth = 0;
       G.mooWarningTimer = 70;
       if (boss.swipePhase === 0) playBossRoar();
@@ -979,7 +979,7 @@ function updateBoss() {
 
     if (boss.stateTimer <= 0) {
       boss.state = 'stabbing';
-      boss.stateTimer = 40;
+      boss.stateTimer = 32;
     }
 
   } else if (boss.state === 'stabbing') {
@@ -1028,9 +1028,9 @@ function updateBoss() {
       boss.passCount = (boss.passCount || 0) + 1;
       // Each pass: shorter rest, deeper press, faster stab
       boss.state = 'idle';
-      boss.idleTimer = Math.max(20, 65 - boss.round * 8 - boss.passCount * 3);
-      boss.pressSpeed = Math.min(0.04, 0.018 + boss.passCount * 0.003);
-      boss.stabSpeed = Math.min(0.22, 0.12 + boss.passCount * 0.015);
+      boss.idleTimer = Math.max(14, 50 - boss.round * 6 - boss.passCount * 4);
+      boss.pressSpeed = Math.min(0.055, 0.025 + boss.passCount * 0.004);
+      boss.stabSpeed = Math.min(0.30, 0.16 + boss.passCount * 0.018);
       boss.quip = null;
     }
 
@@ -1170,21 +1170,20 @@ function drawBoss(boss) {
     ctx.globalAlpha = 0.5;
   }
 
-  if (mooImgLoaded) {
-    var sw = 97 * scale;
-    var sh = 100 * scale;
-    // Use no-claw sprite when idle/retreating, claw sprite when attacking
-    var attacking = (boss.state === 'pressing' || boss.state === 'stabbing');
-    // Use claw sprite when attacking, idle sprite otherwise
-    // Both sprites face right in source art — flip to face LEFT toward Haku
-    var useMooImg = (attacking && mooImgLoaded) ? MOO_IMG : MOO_IDLE_IMG;
-    var leanX = attacking ? 1.08 : 1.0;
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(-leanX, 1);
-    ctx.drawImage(useMooImg, -sw/2, -sh/2, sw, sh);
-    ctx.restore();
-  }
+  var sw = 97 * scale;
+  var sh = 100 * scale;
+  var attacking = (boss.state === 'pressing' || boss.state === 'stabbing');
+  // MOO_IDLE_IMG is base64 (always ready), MOO_IMG is URL (check loaded)
+  var useMooImg = (attacking && mooImgLoaded) ? MOO_IMG : MOO_IDLE_IMG;
+  var leanX = attacking ? 1.1 : 1.0;
+  // Bob slightly when idle
+  var bobY = (boss.state === 'idle' || boss.state === 'retreating' || boss.state === 'entering')
+    ? Math.sin(G.frame * 0.06) * 6 : 0;
+  ctx.save();
+  ctx.translate(x, y + bobY);
+  ctx.scale(-leanX, 1);
+  ctx.drawImage(useMooImg, -sw/2, -sh/2, sw, sh);
+  ctx.restore();
   ctx.globalAlpha = 1.0;
 
   drawBossSpeechBubble(boss);
