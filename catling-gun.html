@@ -7,10 +7,15 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Patrick+Hand&display=swap');
 * { margin:0; padding:0; box-sizing:border-box; }
+html, body {
+  height:auto;
+  min-height:0;
+}
 body {
   background:#f5f0e8;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  min-height:100vh; font-family:'Patrick Hand',cursive; overflow:hidden;
+  font-family:'Patrick Hand',cursive;
+  padding:10px 0 20px;
 }
 #game-container { position:relative; width:480px; max-width:100vw; }
 
@@ -1371,5 +1376,22 @@ document.getElementById('playerName').addEventListener('keydown', function(e) {
 
 
 </script>
+
+<script>
+// Tell parent iframe our height whenever it changes
+function reportHeight() {
+  var h = document.body.scrollHeight || document.documentElement.scrollHeight;
+  if (window.parent && window.parent !== window) {
+    window.parent.postMessage({ type: 'cw-resize', height: h + 20 }, '*');
+  }
+}
+// Report on load
+window.addEventListener('load', reportHeight);
+// Watch for DOM changes (title→game transition)
+if (window.ResizeObserver) {
+  new ResizeObserver(reportHeight).observe(document.body);
+}
+</script>
+
 </body>
 </html>
