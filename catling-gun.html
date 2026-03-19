@@ -1174,13 +1174,14 @@ function drawBoss(boss) {
     var sw = 97 * scale;
     var sh = 100 * scale;
     // Use no-claw sprite when idle/retreating, claw sprite when attacking
-    var useMooImg = (boss.state === 'pressing' || boss.state === 'stabbing') ? MOO_IMG : MOO_IDLE_IMG;
-    if (!useMooImg.complete || useMooImg.naturalWidth === 0) useMooImg = MOO_IDLE_IMG;
-    // Lean forward (scale x slightly) when pressing
-    var leanX = boss.state === 'pressing' ? 1.08 : 1.0;
+    var attacking = (boss.state === 'pressing' || boss.state === 'stabbing');
+    // Use claw sprite when attacking, idle sprite otherwise
+    // Both sprites face right in source art — flip to face LEFT toward Haku
+    var useMooImg = (attacking && mooImgLoaded) ? MOO_IMG : MOO_IDLE_IMG;
+    var leanX = attacking ? 1.08 : 1.0;
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale(-leanX, 1); // flip horizontally so Moo faces LEFT toward Haku
+    ctx.scale(-leanX, 1);
     ctx.drawImage(useMooImg, -sw/2, -sh/2, sw, sh);
     ctx.restore();
   }
