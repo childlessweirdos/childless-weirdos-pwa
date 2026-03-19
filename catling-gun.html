@@ -368,7 +368,7 @@ function drawSkyline(offsetBack, offsetFront) {
   ctx.lineWidth = 2;
   ctx.setLineDash([18, 14]);
   const roadY = groundY + (H - groundY) / 2;
-  const dashOff = (offsetFront * 1.5) % 32;
+  const dashOff = ((-offsetFront * 2.5) % 32 + 32) % 32;
   ctx.beginPath(); ctx.moveTo(-dashOff, roadY); ctx.lineTo(W + 32, roadY); ctx.stroke();
   ctx.setLineDash([]);
 }
@@ -900,86 +900,138 @@ function spawnBoss() {
 }
 
 function updateBoss() {
-  const boss = G.boss;
+  var boss = G.boss;
   if (!boss) return;
 
   boss.hitFlash = Math.max(0, boss.hitFlash - 1);
-  boss.shakeX *= 0.7; // dampen shake
+  boss.shakeX *= 0.75;
+  boss.shakeY *= 0.75;
 
-  // Floating bob
-  boss.y = H/2 + Math.sin(G.frame * 0.025) * 30;
-  boss.clawY += (boss.clawTargetY - boss.clawY) * 0.18;
+  // Floating bob (only when idle/pressing)
+  if (boss.state !== 'staggered') {
+    boss.y += (H/2 + Math.sin(G.frame * 0.03) * 35 - boss.y) * 0.04;
+  }
 
-  if (boss.state === 'idle') {
-    boss.clawX += (boss.x - 20 - boss.clawX) * 0.15; // retract claw
+  // Claw Y tracks target
+  boss.clawY += (boss.clawTargetY - boss.clawY) * 0.15;
+
+  // X position — smoothly track targetX
+  boss.x += (boss.targetX - boss.x) * 0.08;
+
+  if (boss.state === 'entering') {
+    // Slide in from right to base position
+    boss.targetX = boss.baseX;
+    boss.stateTimer--;
+    if (Math.abs(boss.x - boss.baseX) < 5) {
+      boss.state = 'idle';
+      boss.idleTimer = 60;
+    }
+
+  } else if (boss.state === 'idle') {
+    // Hover at base position, retract claw
+    boss.clawExtend += (0 - boss.clawExtend) * 0.12;
+    boss.targetX = boss.baseX;
     boss.idleTimer--;
     if (boss.idleTimer <= 0) {
-      boss.state = 'windup';
-      boss.stateTimer = 55;
-      boss.clawTargetY = G.haku.y; // LOCK onto haku Y
+      // Choose attack
+      var roll = Math.random();
+      if (boss.round >= 3 && roll < 0.3) {
+        boss.attackType = 'double';
+      } else if (boss.round >= 2 && roll < 0.4) {
+        boss.attackType = 'diagonal';
+        boss.clawTargetY = G.haku.y - 70;
+      } else {
+        boss.attackType = 'normal';
+        boss.clawTargetY = G.haku.y;
+      }
+      if (boss.attackType === 'normal' || boss.attackType === 'double') {
+        boss.clawTargetY = G.haku.y; // lock Y NOW
+      }
+      boss.quip = BOSS_QUIPS[Math.floor(Math.random() * BOSS_QUIPS.length)];
+      boss.state = 'pressing';
+      boss.stateTimer = 55; // windup while pressing in
+      boss.pressDepth = 0;
       G.mooWarningTimer = 70;
-    }
-  } else if (boss.state === 'windup') {
-    boss.stateTimer--;
-    // Shake in place during windup
-    boss.shakeX = Math.sin(boss.stateTimer * 0.6) * 4;
-    if (boss.stateTimer <= 0) {
-      boss.state = 'swipe';
-      boss.stateTimer = 50;
-    }
-  } else if (boss.state === 'swipe') {
-    boss.stateTimer--;
-    // Extend claw rapidly to the left
-    const targetClawX = HAKU_X + 60;
-    boss.clawX += (targetClawX - boss.clawX) * 0.25;
-    // Diagonal: sweep claw downward during swipe
-    if (boss.attackType === 'diagonal') {
-      boss.clawTargetY += 4; // sweep down
+      if (boss.swipePhase === 0) playBossRoar();
     }
 
-    // Check hit — claw tip at clawX - 20
-    const clawTip = boss.clawX - 20;
-    if (clawTip < HAKU_X + 46 && G.haku.invincible === 0) {
-      if (Math.abs(boss.clawY - G.haku.y) < 26) {
-        G.moo.hits++; // reuse moo hit counter
+  } else if (boss.state === 'pressing') {
+    // PRESS toward Haku — boss body moves left
+    boss.stateTimer--;
+    // Shake during windup
+    boss.shakeX = Math.sin(boss.stateTimer * 0.5) * 3;
+    // Move boss body toward haku (press in)
+    boss.pressDepth = Math.min(1, boss.pressDepth + 0.018);
+    var pressTarget = boss.baseX - (boss.baseX - HAKU_X - 80) * boss.pressDepth * 0.6;
+    boss.targetX = pressTarget;
+
+    if (boss.stateTimer <= 0) {
+      boss.state = 'stabbing';
+      boss.stateTimer = 40;
+    }
+
+  } else if (boss.state === 'stabbing') {
+    // Full stab — extend claw rapidly, stay pressed in
+    boss.stateTimer--;
+    boss.clawExtend = Math.min(1, boss.clawExtend + 0.12);
+    if (boss.attackType === 'diagonal') {
+      boss.clawTargetY += 3.5;
+    }
+
+    // Check hit — claw tip position
+    var bossScale = 3.8 + boss.round * 0.25;
+    var clawTipX = boss.x - bossScale * 16 - boss.clawExtend * 120;
+    var clawTipY = boss.clawY;
+    if (clawTipX < HAKU_X + 46 && G.haku.invincible === 0) {
+      if (Math.abs(clawTipY - G.haku.y) < 28) {
+        G.moo.hits++;
         G.haku.invincible = 90;
         spawnMooHitSparks(HAKU_X + 20, G.haku.y);
         updateHUD();
+        playHakuHit();
         if (G.moo.hits >= 3) { endGame(); return; }
       }
     }
 
     if (boss.stateTimer <= 0) {
-      boss.state = 'recovering';
-      boss.stateTimer = 35;
-      // Double swipe on round 2+
-      if (boss.round >= 2 && boss.swipePhase === 0) {
+      if (boss.attackType === 'double' && boss.swipePhase === 0) {
+        // Second stab — re-lock and go again
         boss.swipePhase = 1;
-        boss.state = 'windup';
-        boss.stateTimer = 30;
         boss.clawTargetY = G.haku.y;
+        boss.state = 'pressing';
+        boss.stateTimer = 28;
       } else {
         boss.swipePhase = 0;
+        boss.state = 'retreating';
+        boss.stateTimer = 45;
       }
     }
-  } else if (boss.state === 'recovering') {
+
+  } else if (boss.state === 'retreating') {
+    // Pull back to base position
     boss.stateTimer--;
-    boss.clawX += (boss.x - 20 - boss.clawX) * 0.1;
+    boss.clawExtend += (0 - boss.clawExtend) * 0.15;
+    boss.targetX = boss.baseX;
     if (boss.stateTimer <= 0) {
       boss.state = 'idle';
-      boss.idleTimer = Math.max(30, 70 - G.bossRound * 10);
+      boss.idleTimer = Math.max(35, 70 - boss.round * 10);
+      boss.quip = null;
     }
+
   } else if (boss.state === 'staggered') {
     boss.stateTimer--;
-    boss.shakeX = (Math.random() - 0.5) * 8;
+    boss.shakeX = (Math.random() - 0.5) * 10;
+    boss.shakeY = (Math.random() - 0.5) * 6;
+    boss.targetX = boss.baseX;
+    boss.clawExtend += (0 - boss.clawExtend) * 0.2;
     if (boss.stateTimer <= 0) {
       boss.state = 'idle';
-      boss.idleTimer = 40;
+      boss.idleTimer = 45;
     }
   }
 
   // Check bullets hitting boss
-  var bossScale = 3.0 + boss.round * 0.2;
+  var bossScale = 3.8 + boss.round * 0.25;
 const bossHitZone = { x: boss.x - bossScale*16, y: boss.y - bossScale*20, w: bossScale*32, h: bossScale*42 };
   G.bullets = G.bullets.filter(b => {
     if (b.x > bossHitZone.x && b.x < bossHitZone.x + bossHitZone.w &&
@@ -1095,7 +1147,7 @@ function drawBoss(boss) {
 
   const x = boss.x;
   const y = boss.y;
-  const scale = 3.0 + boss.round * 0.2; // much bigger each round
+  const scale = 3.8 + boss.round * 0.25; // fills right side of screen
 
   // Hit flash
   if (boss.hitFlash > 0 && Math.floor(G.frame/2) % 2 === 0) {
@@ -1111,35 +1163,34 @@ function drawBoss(boss) {
 
   drawBossSpeechBubble(boss);
 
-  // CLAW — drawn separately, extends left
-  const cx = boss.clawX;
-  const cy = boss.clawY;
+  // CLAW — extends left based on clawExtend (0=retracted, 1=full)
+  var clawReach = scale * 60 + boss.clawExtend * 130;
+  var cx = x - scale * 16 - clawReach;
+  var cy = boss.clawY;
   // Arm line
-  ctx.strokeStyle = '#333';
-  ctx.lineWidth = 8 * (scale * 0.6);
+  ctx.strokeStyle = '#444';
+  ctx.lineWidth = Math.max(4, scale * 5);
   ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.moveTo(x - 30, y + 10);
-  ctx.quadraticCurveTo(cx + 30, cy - 20, cx, cy);
+  ctx.moveTo(x - scale * 18, y + scale * 5);
+  ctx.quadraticCurveTo(cx + 40, cy - 15, cx, cy);
   ctx.stroke();
-  // Claw hand
-  if (mooImgLoaded) {
-    // Draw a scaled claw hint — just a circle with lines
-    ctx.fillStyle = '#f5f0e8';
-    ctx.strokeStyle = '#111';
-    ctx.lineWidth = 3;
+  // Claw paw
+  ctx.fillStyle = '#f0e8e0';
+  ctx.strokeStyle = '#111';
+  ctx.lineWidth = 2.5;
+  var pr = 14 + scale * 3;
+  ctx.beginPath();
+  ctx.arc(cx, cy, pr, 0, Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  // Claws extending left
+  ctx.strokeStyle = '#111'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+  [[-pr-8,-8],[-pr-6,0],[-pr-8,8],[-pr-4,14]].forEach(function(pair) {
     ctx.beginPath();
-    ctx.arc(cx, cy, 18, 0, Math.PI*2);
-    ctx.fill(); ctx.stroke();
-    // Claws
-    ctx.strokeStyle = '#111'; ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-    [[-12,-16],[-4,-18],[6,-16],[14,-12]].forEach(([ox,oy]) => {
-      ctx.beginPath();
-      ctx.moveTo(cx+ox*0.5, cy+oy*0.5);
-      ctx.lineTo(cx+ox, cy+oy);
-      ctx.stroke();
-    });
-  }
+    ctx.moveTo(cx+pair[0]*0.4, cy+pair[1]*0.4);
+    ctx.lineTo(cx+pair[0], cy+pair[1]);
+    ctx.stroke();
+  });
 
   // HP BAR
   const barW = 120;
