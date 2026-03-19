@@ -56,9 +56,9 @@ canvas { display:block; }
 #hud {
   position:absolute; top:0; left:0; right:0;
   display:flex; justify-content:space-between; align-items:flex-start;
-  padding:6px 10px; pointer-events:none; z-index:10;
+  padding:10px 12px 0; pointer-events:none; z-index:10;
 }
-.hud-score { font-family:'Bangers',cursive; font-size:24px; letter-spacing:0.06em; color:#111; line-height:1; }
+.hud-score { font-family:'Bangers',cursive; font-size:22px; letter-spacing:0.06em; color:#111; line-height:1; }
 .hud-label { font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:#888; }
 .hud-lives { text-align:right; }
 .hud-moo { text-align:center; }
@@ -128,7 +128,7 @@ canvas { display:block; }
         <div class="hud-score" id="hiDisplay">0</div>
       </div>
     </div>
-    <canvas id="gameCanvas" width="480" height="420"></canvas>
+    <canvas id="gameCanvas" width="480" height="410" style="margin-top:10px;"></canvas>
     <div id="gameover-overlay">
       <div class="go-title" id="goTitle">MOO WINS.</div>
       <div class="go-sub" id="goSub">"i think your mommy wants you back alive, sweetie."</div>
@@ -170,7 +170,7 @@ MOO_IMG.onload = () => { mooImgLoaded = true; };
 // ==============================================
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const W = 480, H = 420;
+const W = 480, H = 410;
 const HAKU_X = 52;
 
 // High score
