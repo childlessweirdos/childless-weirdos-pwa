@@ -73,8 +73,10 @@ canvas { display:block; }
 #gameover-overlay.show { display:flex; }
 .go-title { font-family:'Bangers',cursive; font-size:42px; letter-spacing:0.06em; color:#111; line-height:1; margin-bottom:2px; }
 .go-sub { font-size:11px; color:#888; margin-bottom:4px; font-style:italic; max-width:300px; }
-.go-score { font-size:11px; color:#555; margin-bottom:6px; }
-.go-score span { font-family:'Bangers',cursive; font-size:16px; color:#111; }
+.go-stats { display:flex; gap:20px; justify-content:center; margin:8px 0 12px; }
+.go-stat { display:flex; flex-direction:column; align-items:center; }
+.go-stat-label { font-family:'Patrick Hand',cursive; font-size:9px; text-transform:uppercase; letter-spacing:0.12em; color:#888; }
+.go-stat-val { font-family:'Bangers',cursive; font-size:32px; letter-spacing:0.04em; color:#111; line-height:1; }
 .lb-row { display:flex; gap:8px; align-items:baseline; padding:3px 0; border-bottom:1px dashed #ccc; font-size:12px; }
 .lb-rank { font-family:'Bangers',cursive; font-size:16px; color:#888; width:20px; }
 .lb-name { font-family:'Bangers',cursive; font-size:15px; color:#111; flex:1; }
@@ -134,7 +136,11 @@ canvas { display:block; }
     <div id="gameover-overlay">
       <div class="go-title" id="goTitle">MOO WINS.</div>
       <div class="go-sub" id="goSub">"i think your mommy wants you back alive, sweetie."</div>
-      <div class="go-score">score: <span id="finalScore">0</span> &nbsp;·&nbsp; birds: <span id="finalBirds">0</span> &nbsp;·&nbsp; dodges: <span id="finalDodges">0</span></div>
+      <div class="go-stats">
+        <div class="go-stat"><div class="go-stat-label">score</div><div class="go-stat-val" id="finalScore">0</div></div>
+        <div class="go-stat"><div class="go-stat-label">birds</div><div class="go-stat-val" id="finalBirds">0</div></div>
+        <div class="go-stat"><div class="go-stat-label">dodges</div><div class="go-stat-val" id="finalDodges">0</div></div>
+      </div>
       <div id="nameEntry" style="margin:6px 0;">
         <input id="playerName" type="text" maxlength="12" placeholder="your name" 
           style="font-family:'Patrick Hand',cursive;font-size:14px;border:2px solid #111;padding:6px 10px;background:#fff;color:#111;width:140px;text-align:center;">
@@ -1182,12 +1188,18 @@ function drawBoss(boss) {
   ctx.save();
   ctx.translate(x, y + bobY);
   ctx.scale(attacking ? -1.1 : -1.0, 1);
-  if (attacking && mooImgLoaded) {
+  // Use .complete + naturalWidth — works for both URL and base64, no timing issues
+  var clawReady = MOO_IMG.complete && MOO_IMG.naturalWidth > 0;
+  var idleReady = MOO_IDLE_IMG.complete && MOO_IDLE_IMG.naturalWidth > 0;
+  if (attacking && clawReady) {
     ctx.drawImage(MOO_IMG, -sw/2, -sh/2, sw, sh);
-  } else if (!attacking && mooIdleImgLoaded) {
+  } else if (!attacking && idleReady) {
     ctx.drawImage(MOO_IDLE_IMG, -sw/2, -sh/2, sw, sh);
+  } else if (!attacking && clawReady) {
+    // Idle not ready yet, fall back to claw (shouldn't happen with b64 but just in case)
+    ctx.drawImage(MOO_IMG, -sw/2, -sh/2, sw, sh);
   } else {
-    ctx.fillStyle = attacking ? '#222' : '#f0e8e0';
+    ctx.fillStyle = '#f0e8e0';
     ctx.strokeStyle = '#111'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.arc(0, 0, sh*0.35, 0, Math.PI*2); ctx.fill(); ctx.stroke();
   }
@@ -1418,7 +1430,7 @@ function render() {
   ctx.fillStyle='#111';
   ctx.font='bold 14px "Bangers",cursive';
   ctx.textAlign='right';
-  ctx.fillText('v1.5',W-6,H-5);
+  ctx.fillText('v1.6',W-6,H-5);
   ctx.textAlign='left';
   ctx.restore();
 
