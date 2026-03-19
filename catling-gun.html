@@ -1429,14 +1429,9 @@ function render() {
   ctx.fillStyle='#111';
   ctx.font='bold 14px "Bangers",cursive';
   ctx.textAlign='right';
-  ctx.fillText('v1.6',W-6,H-5);
+  ctx.fillText('v1.7',W-6,H-5);
   // DEBUG — remove after testing
-  ctx.globalAlpha=1.0;
-  ctx.fillStyle='#ff0000';
-  ctx.font='bold 10px monospace';
-  ctx.textAlign='left';
-  ctx.fillText('idle?'+(MOO_IDLE_IMG.complete&&MOO_IDLE_IMG.naturalWidth>0)+' claw?'+(MOO_IMG.complete&&MOO_IMG.naturalWidth>0), 6, H-18);
-  ctx.fillText('moo:'+G.moo.state+(G.boss?' boss:'+G.boss.state:''), 6, H-6);
+
   ctx.textAlign='left';
   ctx.restore();
 
