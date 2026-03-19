@@ -15,7 +15,7 @@ body {
   background:#f5f0e8;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   font-family:'Patrick Hand',cursive;
-  padding:10px 0 20px;
+  padding:0;
 }
 #game-container { position:relative; width:480px; max-width:100%; }
 
@@ -54,9 +54,9 @@ body {
 #game-wrap { display:none; position:relative; background:#f5f0e8; border:3px solid #111; box-shadow:6px 7px 0 #111; overflow:visible; line-height:0; }
 canvas { display:block; }
 #hud {
-  position:absolute; top:0; left:0; right:0;
+  position:absolute; top:4px; left:0; right:0;
   display:flex; justify-content:space-between; align-items:flex-start;
-  padding:6px 10px 0; pointer-events:none; z-index:10;
+  padding:0 10px; pointer-events:none; z-index:10;
 }
 .hud-score { font-family:'Bangers',cursive; font-size:clamp(14px,3.5vw,22px); letter-spacing:0.06em; color:#111; line-height:1; }
 .hud-label { font-size:clamp(7px,1.5vw,9px); letter-spacing:0.12em; text-transform:uppercase; color:#888; }
@@ -152,7 +152,6 @@ canvas { display:block; }
 </div>
 
 <script>
-
 // ==============================================
 // COMIC SPRITES
 // ==============================================
@@ -1444,10 +1443,6 @@ document.getElementById('playerName').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') document.getElementById('saveScoreBtn').click();
 });
 
-
-</script>
-
-
 // ==============================================
 // AUDIO ENGINE
 // ==============================================
@@ -1579,7 +1574,6 @@ function playBossIntro() {
 document.addEventListener('click', function(){getAC();},{once:true});
 document.addEventListener('touchstart', function(){getAC();},{once:true});
 
-<script>
 // Tell parent iframe our height whenever it changes
 function reportHeight() {
   var h = document.body.scrollHeight || document.documentElement.scrollHeight;
